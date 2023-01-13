@@ -1,52 +1,45 @@
-import numpy as np
-f = open("8.txt","r")
-inp = f.read().split("\n")
-nrows = len(inp)
-ncols = len(inp[0])
-t = []
-heh = np.zeros(shape=(nrows,ncols))
-for each in inp:
-    t.append([int(i) for i in list(each)])
-trees = np.array(t)
-for i in range(nrows):
-    for j in range(ncols):
-        if trees[i][j]<trees[i][j+1]:
-            # print("reached here with "+str(i)+str(j))
-            heh[i][j+1] = 1
-        elif trees[i][j] == trees[i][j+1]:
-            continue
-        else:
-            break
-for i in range(nrows):
-    for j in range(ncols):
-        if trees[i][ncols-2-j]>trees[i][ncols-j-1]:
-            heh[i][ncols-j-2] = 1
-        elif trees[i][ncols-2-j] == trees[i][ncols-j-1]:
-            continue
-        else:
-            break
-for j in range(ncols):
-    for i in range(nrows):
-        if trees[i][j]<trees[i+1][j]:
-            heh[i+1][j] = 1
-        elif trees[i][j] == trees[i+1][j]:
-            continue
-        else:
-            break
-for i in range(nrows):
-    for j in range(ncols):
-        if trees[nrows-i-2][j]>trees[nrows-i-1][j]:
-            heh[nrows-i-2][j] = 1
-        elif trees[nrows-i-2][j] == trees[nrows-i-1][j]:
-            continue
-        else:
-            break
-for j in range(ncols):
-    heh[0][j] = 1
-    heh[nrows-1][j] = 1
-for i in range(nrows):
-    heh[i][0] = 1
-    heh[i][ncols-1] = 1
-print(heh)
-print(str(nrows)+" " +str(ncols))
-print(np.count_nonzero(heh))
+with open("8.txt") as file:
+    inp = [row.strip() for row in file.readlines()]
+
+ROWS = len(inp)            # num of rows
+COLUMNS = len(inp[0])      # num of columns
+
+edges = (ROWS*2) + (COLUMNS*2) - 4      # all trees on edges are visible
+total = edges                           # add edges to total visible trees
+scores = []                             # track the scenic scores
+
+# Iterate through trees not on edges
+for row in range(1, ROWS-1):
+    for col in range(1, COLUMNS-1):
+        tree = inp[row][col]           # Tree that we are looking at
+
+        # Get all horizontal & vertical trees
+        left = [inp[row][col-i] for i in range(1, col+1)]
+        right = [inp[row][col+i] for i in range(1, COLUMNS-col)]
+        up = [inp[row-i][col] for i in range(1, row+1)]
+        down = [inp[row+i][col] for i in range(1, ROWS-row)]
+
+        # === PART 1 ===
+        # Check if tallest tree on all sides blocks our view of the tree
+        if max(left)<tree or max(right)<tree or max(up)<tree or max(down)<tree:
+            total += 1
+
+        # === PART 2 ===
+        
+        # Finding scenic score
+        score = 1
+        for lst in (left, right, up, down):
+            tracker = 0
+            for i in range(len(lst)):
+                if lst[i] < tree:
+                    tracker += 1
+                elif lst[i] >= tree:
+                    tracker += 1
+                    break
+            
+            score *= tracker
+
+        scores.append(score)
+
+print("Part 1:", total)
+print("Part 2:", max(scores))
